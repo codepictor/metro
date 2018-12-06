@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import metro_data
+import singleton
 
 
 class Station:
@@ -54,7 +55,7 @@ class Route:
         return representation
 
 
-class Router:
+class Router(metaclass=singleton.Singleton):
     def __init__(self):
         self._graph = nx.Graph()
         self._graph.add_nodes_from(metro_data.STATIONS.keys())
@@ -92,7 +93,7 @@ class Router:
 
 
     def __repr__(self):
-        return 'A singletone for constructing routes'
+        return 'A singleton for constructing routes'
 
 
 
