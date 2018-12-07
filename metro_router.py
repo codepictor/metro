@@ -4,27 +4,50 @@ import metro_data
 import singleton
 
 
+
 class Station:
-    def __init__(self, station):
-        """"""
+    """Convenient wrapper around a metro's station."""
+
+    def __init__(self, station, line=None):
+        """Inits station.
+
+        This method can init a station based on whether station's id
+        or station's name. Some stations have same names but different
+        line numbers. That is why, you need specify a line number explicitly
+        to avoid ambiguity.
+        
+        Args:
+            station (int or str): station's id or name
+            line (int): line number of the given station
+
+        Raises:
+            ValueError: trying to init a station with incorrect data
+                (given station's id doesn't exist,
+                ambiguity in choosing line number, etc.)
+        """
         if isinstance(station, int):
-            if station not in metro_data.STATIONS.keys():
-                raise ValueError('Station with id = {0} '
-                                 + ' not found'.format(station))
+            if station not in metro_data.STATIONS:
+                raise ValueError('Station with id = {0} '.format(station)
+                                 + 'not found'
             self._id = station
         elif isinstance(station, str):
             stations_count = 0
             for station_id, station_info in metro_data.STATIONS.items():
                 if station_info['name'] == station:
-                    self._id = station_id
                     stations_count += 1
+                    if line is not None and station_info['line'] != line:
+                        raise ValueError("Incorrect line ({0}) ".format(line)
+                                         + "for station '{1}'".format(station))
+                    if line is None or station_info['line'] == line:
+                        self._id = station_id
             if stations_count == 0:
                 raise ValueError("Station '{0}' doesn't exist".format(station))
-            if stations_count >= 2:
+            if stations_count >= 2 and line is None:
                 raise ValueError("You have to specify a line "
                                  + " for the station '{0}'".format(station))
         else:
             raise ValueError("Wrong station's type: {0}".format(type(station)))
+
 
     def __repr__(self):
         return "Station: '{0}' (line: {1})".format(
@@ -32,16 +55,28 @@ class Station:
                 metro_data.STATIONS[self._id]['line'])
 
 
+
 class Route:
+    """Convenient wrapper around a metro's route.
+
+    Attributes:
+        path (list of dicts): each dict in this list contains:
+            'from': Station - beginning if the route
+            'to': Station - end of the route
+            'time': int - time (in seconds) needed to move between from and to
+    """
+
     def __init__(self):
+        """Inits empty route (with no stations)."""
         self.path = []
 
+
     def _append_edge(self, station_from_id, station_to_id, time):
-        """"""
         self.path.append({
                 'from': Station(station_from_id),
                 'to':   Station(station_to_id),
                 'time': time})
+
 
     def __repr__(self):
         representation = "Route: from '{0}' to '{1}':\n".format(
@@ -55,46 +90,94 @@ class Route:
         return representation
 
 
+
 class Router(metaclass=singleton.Singleton):
+    """A singleton for finding different routes in metro.
+
+    This class provides convenient interface for getting routes
+    between two metro's stations. A route can have intermediate stations
+    (see the 'make_shortest_path' method).
+    """
+
     def __init__(self):
+        """Constructs a metro's graph."""
         self._graph = nx.Graph()
         self._graph.add_nodes_from(metro_data.STATIONS.keys())
         self._graph.add_edges_from(metro_data.LINKS)
 
-    def make_shortest_route(self, start_station, finish_station,
-                            is_drawing_graph=False):
-        """"""
+
+    def _make_shortest_simple_path(self, start_station, finish_station):
+        # Just performs Dijkstra's algorithm
         shortest_path = [start_station,]
-        shortest_path_time = 0.0
         if (start_station != finish_station):
             shortest_path = nx.dijkstra_path(
                     self._graph, start_station._id,
                     finish_station._id, weight='time')
+        return shortest_path
+
+
+    def _draw_path(self, path):
+        # Draws _graph
+        nx.draw_networkx(self._graph, with_labels=True, font_weight='bold')
+        start_station_name = metro_data.STATIONS[path[0]._id]['name']
+        finish_station_name = metro_data.STATIONS[path[-1]._id]['name']
+        plt.savefig('from_' + start_station_name + '_to_'
+                    + finish_station_name + '.png')
+
+
+    def _make_route_from_path(self, path):
+        # Converts given path to a route
+        edges = nx.get_edge_attributes(self._graph, 'time')
+        route = Route()
+        for i in range(1, len(path)):
+            station_from_id = path[i - 1]
+            station_to_id = path[i]
+            if station_from_id != station_to_id:
+                if (station_from_id, station_to_id) in edges:
+                    time = edges[(station_from_id, station_to_id)]
+                else:
+                    time = edges[(station_to_id, station_from_id)]
+            route._append_edge(station_from_id, station_to_id, time)
+        return route
+
+
+    def make_shortest_route(self, start_station, finish_station,
+                            intermediate_stations=None, is_drawing_graph=False):
+        """Constructs the shortest route between two given stations.
+        
+        Args:
+            start_station (Station): station which is the beginning
+                of the shortest route
+            finish_station (Station): station which is the end
+                of the shortest route
+            intermediate_stations (iterable object): intermediate stations
+                which you want to visit (in given order)
+            is_drawing_graph (bool): whether the self._graph shoul be drawn
+
+        Returns:
+            A route (instance of the class Route) which is the shortest between
+            start_station and finish_station.
+        """
+        if intermediate_stations is None or not intermediate_stations:
+            shortest_path = self._make_shortest_simple_path(
+                    start_station, finish_station)
+        else:
+            shortest_path = []
+            intermediate_stations.append(finish_station)
+            curr_station = start_station
+            for next_station in intermediate_stations:
+                shortest_path.extend(self._make_shortest_simple_path(
+                        curr_station, next_station))
+                # if next_station != finish_station
+                curr_station = next_station
 
         if is_drawing_graph:
-            nx.draw_networkx(self._graph, with_labels=True, font_weight='bold')
-            start_station_name = metro_data.STATIONS[start_station._id]['name']
-            finish_station_name = metro_data.STATIONS[finish_station._id]['name']
-            plt.savefig('from_' + start_station_name + '_to_'
-                        + finish_station_name + '.png')
-
-        edges = nx.get_edge_attributes(self._graph, 'time')
-        shortest_route = Route()
-        for i in range(1, len(shortest_path)):
-            station_from_id = shortest_path[i - 1]
-            station_to_id = shortest_path[i]
-            if (station_from_id, station_to_id) in edges:
-                time = edges[(station_from_id, station_to_id)]
-            else:
-                time = edges[(station_to_id, station_from_id)]
-            shortest_route._append_edge(station_from_id, station_to_id, time)
+            self._draw_path(shortest_path)
+        shortest_route = self._make_route_from_path(shortest_path)
         return shortest_route
-
 
 
     def __repr__(self):
         return 'A singleton for constructing routes'
-
-
 
 
