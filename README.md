@@ -5,7 +5,9 @@ First of all, you should have ```python3``` and ```virtualenv``` to work with th
 #### First of all, clone this repository:
 ```
 git clone https://github.com/codepictor/metro.git
+```
 
+```
 cd metro/
 ```
 
@@ -21,6 +23,6 @@ source metrovenv/bin/activate
 
 #### Install required dependencies
 ```
-pip install -r requirements.txt
+pip install --upgrade pip -r requirements.txt 
 ```
 
