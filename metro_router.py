@@ -28,16 +28,13 @@ class Station:
         if isinstance(station, int):
             if station not in metro_data.STATIONS:
                 raise ValueError('Station with id = {0} '.format(station)
-                                 + 'not found'
+                                 + 'not found')
             self._id = station
         elif isinstance(station, str):
             stations_count = 0
             for station_id, station_info in metro_data.STATIONS.items():
                 if station_info['name'] == station:
                     stations_count += 1
-                    if line is not None and station_info['line'] != line:
-                        raise ValueError("Incorrect line ({0}) ".format(line)
-                                         + "for station '{1}'".format(station))
                     if line is None or station_info['line'] == line:
                         self._id = station_id
             if stations_count == 0:
@@ -137,7 +134,7 @@ class Router(metaclass=singleton.Singleton):
                     time = edges[(station_from_id, station_to_id)]
                 else:
                     time = edges[(station_to_id, station_from_id)]
-            route._append_edge(station_from_id, station_to_id, time)
+                route._append_edge(station_from_id, station_to_id, time)
         return route
 
 
