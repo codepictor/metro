@@ -27,21 +27,27 @@ class Station:
         """
         if isinstance(station, int):
             if station not in metro_data.STATIONS:
-                raise ValueError('Station with id = {0} '.format(station)
-                                 + 'not found')
+                raise ValueError('Station with id = {0}'.format(station)
+                                 + ' not found')
             self._id = station
         elif isinstance(station, str):
             stations_count = 0
+            found_line = None
             for station_id, station_info in metro_data.STATIONS.items():
                 if station_info['name'] == station:
                     stations_count += 1
                     if line is None or station_info['line'] == line:
                         self._id = station_id
+                        found_line = station_info['line']
             if stations_count == 0:
-                raise ValueError("Station '{0}' doesn't exist".format(station))
+                raise ValueError("Station '{0}' ".format(station)
+                                 + "doesn't exist")
             if stations_count >= 2 and line is None:
                 raise ValueError("You have to specify a line "
-                                 + " for the station '{0}'".format(station))
+                                 + "for the station '{0}'".format(station))
+            if found_line is None:
+                raise ValueError("Incorrect line {0} ".format(line)
+                                 + "for station '{0}'".format(station))
         else:
             raise ValueError("Wrong station's type: {0}".format(type(station)))
 
@@ -173,8 +179,5 @@ class Router(metaclass=singleton.Singleton):
         shortest_route = self._make_route_from_path(shortest_path)
         return shortest_route
 
-
-    def __repr__(self):
-        return 'A singleton for constructing routes'
 
 

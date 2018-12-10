@@ -1,6 +1,6 @@
-First of all, you should have ```python3``` and ```virtualenv``` to work with this project.
+First of all, you should have ```python3```, ```git``` and ```virtualenv``` to work with this project.
 
-### How to deploy it:
+## How to deploy it:
 
 #### First of all, clone this repository:
 ```

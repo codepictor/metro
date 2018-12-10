@@ -25,9 +25,10 @@ def main():
     start_station = metro_router.Station('Окружная', line=10)
     finish_station = metro_router.Station('Братиславская')
     intermediate_station1 = metro_router.Station('Борисово')
+    intermediate_station2 = metro_router.Station('Орехово')
     route_with_intermediates = router.make_shortest_route(
             start_station, finish_station,
-            intermediate_stations=[intermediate_station1,])
+            intermediate_stations=[intermediate_station1, intermediate_station2])
     print(route_with_intermediates)
 
 
