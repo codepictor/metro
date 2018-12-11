@@ -130,6 +130,7 @@ class Router(metaclass=singleton.Singleton):
         Args:
             route (Route): a route for highlighting
         """
+        plt.gcf().clear()
         # layout
         pos = nx.kamada_kawai_layout(self._graph, weight='time')
 
@@ -147,25 +148,23 @@ class Router(metaclass=singleton.Singleton):
                 highlighted_stations.append((edge['from']._id, edge['to']._id))
             nx.draw_networkx_edges(self._graph, pos,
                                    edgelist=highlighted_stations,
-                                   width=4, edge_color='g')
+                                   width=4, edge_color='r')
 
         # labels
         nx.draw_networkx_labels(self._graph, pos,
                                 font_size=4, font_family='sans-serif')
 
-        fig = plt.gcf()
-        fig.set_size_inches(18, 12)
+        plt.gcf().set_size_inches(18, 12)
         plt.axis('off')
-
-        filename = '../img/metro.png'
+        filename = '../img/metro.svg'
         if route is not None:
             start_station_id = route.path[0]['from']._id
             start_station_name = metro_data.STATIONS[start_station_id]['name']
             finish_station_id = route.path[-1]['to']._id
             finish_station_name = metro_data.STATIONS[finish_station_id]['name']
             filename = '../img/from_' + start_station_name + '_to_'\
-                       + finish_station_name + '.png'
-        plt.savefig(filename, dpi=180)
+                       + finish_station_name + '.svg'
+        plt.savefig(filename, dpi=180, format='svg')
 
 
     def _make_route_from_path(self, path):
