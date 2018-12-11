@@ -147,7 +147,7 @@ class Router(metaclass=singleton.Singleton):
                 highlighted_stations.append((edge['from']._id, edge['to']._id))
             nx.draw_networkx_edges(self._graph, pos,
                                    edgelist=highlighted_stations,
-                                   width=3, edge_color='g')
+                                   width=4, edge_color='g')
 
         # labels
         nx.draw_networkx_labels(self._graph, pos,
@@ -157,14 +157,15 @@ class Router(metaclass=singleton.Singleton):
         fig.set_size_inches(18, 12)
         plt.axis('off')
 
-        filename = '../img/mosmetro.png'
+        filename = '../img/metro.png'
         if route is not None:
             start_station_id = route.path[0]['from']._id
             start_station_name = metro_data.STATIONS[start_station_id]['name']
             finish_station_id = route.path[-1]['to']._id
             finish_station_name = metro_data.STATIONS[finish_station_id]['name']
-            filename = '../img/from_' + start_station_name + '_to_' + finish_station_name + '.png'
-        plt.savefig(filename, dpi=150)
+            filename = '../img/from_' + start_station_name + '_to_'\
+                       + finish_station_name + '.png'
+        plt.savefig(filename, dpi=180)
 
 
     def _make_route_from_path(self, path):
