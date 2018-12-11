@@ -1,3 +1,4 @@
+import scipy
 import networkx as nx
 import matplotlib.pyplot as plt
 import metro_data
@@ -119,13 +120,51 @@ class Router(metaclass=singleton.Singleton):
         return shortest_path
 
 
-    def _draw_path(self, path):
-        # Draws _graph
-        nx.draw_networkx(self._graph, with_labels=True, font_weight='bold')
-        start_station_name = metro_data.STATIONS[path[0]._id]['name']
-        finish_station_name = metro_data.STATIONS[path[-1]._id]['name']
-        plt.savefig('from_' + start_station_name + '_to_'
-                    + finish_station_name + '.png')
+    def draw_route(self, route=None):
+        """Draws the graph with the highlighted route.
+        
+        If route is not provided, this method will draw self._graph
+        without highlighting any route. The figure will be saved
+        into a file.
+
+        Args:
+            route (Route): a route for highlighting
+        """
+        # layout
+        pos = nx.kamada_kawai_layout(self._graph, weight='time')
+
+        # nodes
+        colors = [metro_data.COLORS[station['line']]
+                  for station in metro_data.STATIONS.values()]
+        nx.draw_networkx_nodes(self._graph, pos, node_size=80,
+                               node_color=colors)
+
+        # edges
+        nx.draw_networkx_edges(self._graph, pos, width=1)
+        if route is not None:
+            highlighted_stations = []
+            for edge in route.path:
+                highlighted_stations.append((edge['from']._id, edge['to']._id))
+            nx.draw_networkx_edges(self._graph, pos,
+                                   edgelist=highlighted_stations,
+                                   width=3, edge_color='g')
+
+        # labels
+        nx.draw_networkx_labels(self._graph, pos,
+                                font_size=4, font_family='sans-serif')
+
+        fig = plt.gcf()
+        fig.set_size_inches(18, 12)
+        plt.axis('off')
+
+        filename = '../img/mosmetro.png'
+        if route is not None:
+            start_station_id = route.path[0]['from']._id
+            start_station_name = metro_data.STATIONS[start_station_id]['name']
+            finish_station_id = route.path[-1]['to']._id
+            finish_station_name = metro_data.STATIONS[finish_station_id]['name']
+            filename = '../img/from_' + start_station_name + '_to_' + finish_station_name + '.png'
+        plt.savefig(filename, dpi=150)
 
 
     def _make_route_from_path(self, path):
@@ -145,7 +184,8 @@ class Router(metaclass=singleton.Singleton):
 
 
     def make_shortest_route(self, start_station, finish_station,
-                            intermediate_stations=None, is_drawing_graph=False):
+                            intermediate_stations=None,
+                            is_drawing_graph=False):
         """Constructs the shortest route between two given stations.
         
         Args:
@@ -174,10 +214,9 @@ class Router(metaclass=singleton.Singleton):
                 # if next_station != finish_station
                 curr_station = next_station
 
-        if is_drawing_graph:
-            self._draw_path(shortest_path)
         shortest_route = self._make_route_from_path(shortest_path)
+        if is_drawing_graph:
+            self.draw_route(shortest_route)
         return shortest_route
-
 
 
