@@ -1,5 +1,7 @@
 import scipy
 import networkx as nx
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import metro_data
 import singleton
@@ -96,7 +98,7 @@ class Route:
 
 
 class Router(metaclass=singleton.Singleton):
-    """A singleton for finding different routes in metro.
+    """A singleton for making different routes in metro.
 
     This class provides convenient interface for getting routes
     between two metro's stations. A route can have intermediate stations
@@ -156,15 +158,19 @@ class Router(metaclass=singleton.Singleton):
 
         plt.gcf().set_size_inches(18, 12)
         plt.axis('off')
-        filename = '../img/metro.svg'
+        filename = 'metro.pdf'
         if route is not None:
             start_station_id = route.path[0]['from']._id
             start_station_name = metro_data.STATIONS[start_station_id]['name']
             finish_station_id = route.path[-1]['to']._id
             finish_station_name = metro_data.STATIONS[finish_station_id]['name']
-            filename = '../img/from_' + start_station_name + '_to_'\
-                       + finish_station_name + '.svg'
-        plt.savefig(filename, dpi=180, format='svg')
+            filename = 'from_' + start_station_name + '_to_'\
+                       + finish_station_name + '.pdf'
+        try:
+            plt.savefig('../img/' + filename, dpi=180, format='pdf')
+        except FileNotFoundError:
+            print("WARNING! To get an image of the graph you should run "
+                  + "the script 'main.py' inside metro/src/ directory")
 
 
     def _make_route_from_path(self, path):
