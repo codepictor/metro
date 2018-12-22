@@ -18,7 +18,7 @@ class Station:
         or station's name. Some stations have same names but different
         line numbers. That is why, you need specify a line number explicitly
         to avoid ambiguity.
-        
+
         Args:
             station (int or str): station's id or name
             line (int): line number of the given station
@@ -124,7 +124,7 @@ class Router(metaclass=singleton.Singleton):
 
     def draw_route(self, route=None):
         """Draws the graph with the highlighted route.
-        
+
         If route is not provided, this method will draw self._graph
         without highlighting any route. The figure will be saved
         into a file.
@@ -193,7 +193,7 @@ class Router(metaclass=singleton.Singleton):
                             intermediate_stations=None,
                             is_drawing_graph=False):
         """Constructs the shortest route between two given stations.
-        
+
         Args:
             start_station (Station): station which is the beginning
                 of the shortest route
